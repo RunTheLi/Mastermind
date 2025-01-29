@@ -8,5 +8,5 @@ Build a Mastermind game from the command line where you have 12 turns to guess t
 "I did this because I want to understand the connection of the code and the functioning of the Mastermind game, mostly, also I'm still learning Ruby lang at this point"
 
 
--source
+- source
 https://www.theodinproject.com/lessons/ruby-mastermind
