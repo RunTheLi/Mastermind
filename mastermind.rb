@@ -2,11 +2,15 @@ module Boardgame
   class Table
     attr_reader :rows, :columns, :grid
 
-    def initialize(rows = 6, columns = 4)
+    COLORS = %w[Red Blue Green Yellow White Black].freeze
+
+    def initialize(rows = 6, columns = 4, player_creates = false)
       @rows = rows
       @columns = columns
       @grid = Array.new(rows) { Array.new(columns, '_') }
-      @secret_code = Array.new(columns) { COLORS.sample }
+      @player_creates = player_creates
+      @secret_code = player_creates ? player_choice : computer_choice
+      computer_guess if player_creates
     end
 
     def display
@@ -25,8 +29,44 @@ module Boardgame
       { exact: exact_matches, color: color_matches }
     end
 
-    def Human_Choice
-      Array.new(columns) { COLORS.sample }
+    def player_choice
+      puts "Enter your secret code #{@columns} colors, seperated by space"
+      gets.chomp.split.map(&:capitalize)
+    end
+
+    def computer_guess
+      guess = Array.new(columns) { COLORS.sample }
+      attempt = 0
+      known_positions = Array.new(columns, nil) # To track known correct positions
+      known_colors = []
+      loop do
+        attempt += 1
+        feedback_result = feedback(guess)
+        puts "Computer guesses: #{guess.join(', ')} | Feedback: #{feedback_result}"
+
+        # If exact matches equal the number of columns, break
+        if feedback_result[:exact] == @columns
+          puts "Computer guessed the secret code in #{attempt} attempts!"
+          break
+        end
+
+        guess.each_with_index do |color, index|
+          if color == @secret_code[index]
+            known_positions[index] = color
+          elsif @secret_code.include?(color) && !known_colors.include?(color)
+            known_colors << color
+          end
+        end
+
+        guess = known_positions.map.with_index do |c, i|
+          c || (known_colors.include?(guess[i]) ? guess[i] : COLORS.sample)
+        end
+      end
+      puts "Computer guessed the secret code in #{attempts} attempts!"
     end
   end
 end
+
+game = Boardgame::Table.new(6, 4, true)
+game.display
+game.computer_guess
